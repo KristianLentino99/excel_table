@@ -10,13 +10,22 @@ var FilterMenu = function () {
         this.column = column;
         this.index = index;
         this.dataKey = dataKey;
-        this.spinner = spinner;
+        this.spinner = options.spinner;
+        this.sortOnClick = options.sortOnHeaderClick;
+        this.dataSort = $(th).data('type-sort')??'normal';
         this.tds = target.find('tbody tr td:nth-child(' + (this.column + 1) + ')').toArray();
     }
     FilterMenu.prototype.initialize = function () {
         this.menu = this.dropdownFilterDropdown(this.dataKey,this.spinner);
+        let th = this.th;
+        th.appendChild(this.menu);
 
-        this.th.appendChild(this.menu);
+        
+        if(this.sortOnClick){
+            $(th).attr('data-sort-on-click',true);
+            $(th).attr('data-sort-type','a-to-z');
+        }
+
         var $trigger = $(this.menu.children[0]);
         var $content = $(this.menu.children[1]);
         var $menu = $(this.menu);
@@ -211,7 +220,7 @@ var FilterCollection = function () {
         this.filterMenus = this.ths.map(function (th, index) {
             var column = $(th).index();
             var columnDataKey = $(th).data('key');
-            return new FilterMenu(target, th, column, index, options,columnDataKey,options.spinner);
+            return new FilterMenu(target, th, column, index, options,columnDataKey);
         });
         this.rows = target.find('tbody').find('tr').toArray();
         this.table = target.get(0);
@@ -266,6 +275,29 @@ var FilterCollection = function () {
             sort(column, order, table, options,floatOptions);
             updateRowVisibility(filterMenus, rows, ths);
         });
+
+        if(this.options.sortOnHeaderClick){
+
+            this.target.find('th[data-sort-on-click=true]').click(function(){
+
+                var sortType = $(this).attr('data-sort-type');
+                var $sortElement = $(this).find('span[class='+sortType+']');
+            
+                var currentTh = this;
+                var column = $sortElement.data('column');
+                var order = $sortElement.attr('class');
+                sort(column, order, table, options,floatOptions);
+                updateRowVisibility(filterMenus, rows, ths).then(() => {
+
+                    let nextSort = sortType === 'a-to-z' ? 'z-to-a' : 'a-to-z';
+
+                    $(currentTh).attr('data-sort-type',nextSort);
+                })
+            })
+
+
+
+        }
     };
     FilterCollection.prototype.bindSearch = function () {
         var filterMenus = this.filterMenus;
@@ -331,39 +363,66 @@ var FilterCollection = function () {
     };
     FilterCollection.prototype.sort = function (column, order, table, options,floatOptions) {
         var flip = 1;
+        
+        
         if (order === options.captions.z_to_a.toLowerCase().split(' ').join('-')) flip = -1;
         var tbody = $(table).find('tbody').get(0);
         var rows = $(tbody).find('tr').get();
+        var thFilter = $(table).find('th').get(column);
+        var dataSort = $(thFilter).data('type-sort')??'normal';
+
         rows.sort(function (a, b) {
-            var A = a.children[column].innerText.toUpperCase();
-            var B = b.children[column].innerText.toUpperCase();
 
+            var childrenA = a.children[column];
+            var childrenB = b.children[column];
+            var A = childrenA.innerText.toUpperCase();
+            var B = childrenB.innerText.toUpperCase();
 
-            if(floatOptions.thousandsSeparator=='.'){
+            /** normal means sort with numbers and strings */
 
-                A = A.replace('.','');
-                B = B.replace('.','');
+            switch(dataSort){
+
+                case 'normal':
+                    if (A < B) return -1 * flip;
+                    if (A > B) return 1 * flip;
+                break;
+                case 'number':
+                    if(floatOptions.thousandsSeparator=='.'){
+
+                        A = A.replace('.','');
+                        B = B.replace('.','');
+                    }
+        
+                    if(floatOptions.decimalSeparator == ','){
+        
+                        A = A.replace(',','.');
+                        B = B.replace(',','.');
+        
+                    }
+                    
+                    if (!isNaN(Number(A)) && !isNaN(Number(B))) {
+        
+                        A = parseFloat(A);
+                        B = parseFloat(B);
+        
+                        if (Number(A) < Number(B)) return -1 * flip;
+                        if (Number(A) > Number(B)) return 1 * flip;
+                    }
+                break;
+                case 'date':
+                    var timestampA = undefined;
+                    var timestampB = undefined;
+    
+                    timestampA = Date.parse($(childrenA).data('sort-date'));
+                    timestampB = Date.parse($(childrenB).data('sort-date'));
+    
+                    if (timestampA < timestampB) return -1 * flip;
+                    if (timestampA > timestampB) return 1 * flip;
+                break;
+
             }
 
-            if(floatOptions.decimalSeparator == ','){
-
-                A = A.replace(',','.');
-                B = B.replace(',','.');
-
-            }
             
-            if (!isNaN(Number(A)) && !isNaN(Number(B))) {
-
-                A = parseFloat(A);
-                B = parseFloat(B);
-
-                if (Number(A) < Number(B)) return -1 * flip;
-                if (Number(A) > Number(B)) return 1 * flip;
-            } else {
-                console.log(A);
-                if (A < B) return -1 * flip;
-                if (A > B) return 1 * flip;
-            }
             return 0;
         });
         for (var i = 0; i < rows.length; i++) {
@@ -380,6 +439,7 @@ $$1.fn.excelTableFilter = function (options) {
     if (typeof options.columnSelector === 'undefined') options.columnSelector = '';
     if (typeof options.sort === 'undefined') options.sort = true;
     if (typeof options.search === 'undefined') options.search = true;
+    if (typeof options.sortOnHeaderClick === 'undefined') options.sortOnHeaderClick = false;
     if (typeof options.floatOptions === 'undefined') options.floatOptions = {
         decimalSeparator: ',',
         thousandsSeparator: false
