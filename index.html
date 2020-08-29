@@ -241,8 +241,10 @@
         sortOnHeaderClick:true
       });
 
-      $('#table').on('updateTableCompleted',function(){
+      $('#table').on('updateTableCompleted',function(e,data){
         
+        console.log(e);
+        console.log(data);
       })
       $('#table2').excelTableFilter();
       $('#table3').excelTableFilter();
