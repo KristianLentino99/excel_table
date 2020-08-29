@@ -240,11 +240,12 @@ var FilterCollection = function () {
         var rows = this.rows;
         var ths = this.ths;
         var updateRowVisibility = this.updateRowVisibility;
+        var filterCollectionContext = this;
         this.target.find('.dropdown-filter-menu-item.item').change(function () {
             var index = $(this).data('index');
             var value = $(this).val();
             filterMenus[index].updateSelectAll();
-            updateRowVisibility(filterMenus, rows, ths);
+            updateRowVisibility(filterMenus, rows, ths).then(() => filterCollectionContext.target.trigger('updateTableCompleted',[{type:'checkbox'}]));
         });
     };
     FilterCollection.prototype.bindSelectAllCheckboxes = function () {
@@ -252,11 +253,12 @@ var FilterCollection = function () {
         var rows = this.rows;
         var ths = this.ths;
         var updateRowVisibility = this.updateRowVisibility;
+        var filterCollectionContext = this;
         this.target.find('.dropdown-filter-menu-item.select-all').change(function () {
             var index = $(this).data('index');
             var value = this.checked;
             filterMenus[index].selectAllUpdate(value);
-            updateRowVisibility(filterMenus, rows, ths);
+            updateRowVisibility(filterMenus, rows, ths).then(() => filterCollectionContext.target.trigger('updateTableCompleted',[{type:'checkbox_select_all'}]));
         });
     };
     FilterCollection.prototype.bindSort = function () {
@@ -268,31 +270,38 @@ var FilterCollection = function () {
         var options = this.options;
         var floatOptions = this.floatOptions;
         var updateRowVisibility = this.updateRowVisibility;
+        var filterCollectionContext = this;
         this.target.find('.dropdown-filter-sort').click(function () {
             var $sortElement = $(this).find('span');
             var column = $sortElement.data('column');
             var order = $sortElement.attr('class');
             sort(column, order, table, options,floatOptions);
-            updateRowVisibility(filterMenus, rows, ths);
+            updateRowVisibility(filterMenus, rows, ths).then(() =>  filterCollectionContext.target.trigger('updateTableCompleted',[{type:'sort'}]));
         });
 
         if(this.options.sortOnHeaderClick){
 
-            this.target.find('th[data-sort-on-click=true]').click(function(){
+            this.target.find('th[data-sort-on-click=true]').click(function(e){
 
-                var sortType = $(this).attr('data-sort-type');
-                var $sortElement = $(this).find('span[class='+sortType+']');
-            
-                var currentTh = this;
-                var column = $sortElement.data('column');
-                var order = $sortElement.attr('class');
-                sort(column, order, table, options,floatOptions);
-                updateRowVisibility(filterMenus, rows, ths).then(() => {
 
-                    let nextSort = sortType === 'a-to-z' ? 'z-to-a' : 'a-to-z';
+                if(e.target === this ){
+                
+                    var sortType = $(this).attr('data-sort-type');
+                    var $sortElement = $(this).find('span[class='+sortType+']');
+                
+                    var currentTh = this;
+                    var column = $sortElement.data('column');
+                    var order = $sortElement.attr('class');
+                    sort(column, order, table, options,floatOptions);
+                    updateRowVisibility(filterMenus, rows, ths).then(() => {
 
-                    $(currentTh).attr('data-sort-type',nextSort);
-                })
+                        let nextSort = sortType === 'a-to-z' ? 'z-to-a' : 'a-to-z';
+
+                        $(currentTh).attr('data-sort-type',nextSort);
+
+                        filterCollectionContext.target.trigger('updateTableCompleted',[{type:'sort',target:'header'}]);
+                    })
+                }
             })
 
 
@@ -305,6 +314,7 @@ var FilterCollection = function () {
         var ths = this.ths;
         var updateRowVisibility = this.updateRowVisibility;
         var toggleSpinner = this.toggleSpinner;
+        var filterCollectionContext = this;
         this.target.find('.dropdown-filter-search').keyup(function (e) {
             var code = e.keyCode || e.which;
             if (code == 13 || !code) {
@@ -317,6 +327,8 @@ var FilterCollection = function () {
                 filterMenus[index].searchToggle(value);
                 updateRowVisibility(filterMenus, rows, ths).then((resolve) => {
                     toggleSpinner($($input).parent());
+
+                    filterCollectionContext.target.trigger('updateTableCompleted',[{type:'search'}]);
                 });
             }
         });
