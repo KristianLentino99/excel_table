@@ -20,6 +20,43 @@ DEMO URL : https://kristianlentino99.github.io/excel_table/
     $('#table1').excelTableFilter();
     $('#table2').excelTableFilter();
 ```
+
+## Data attributes
+
+Below a list of the data attributes you can pass.
+
+
+data-attribute      | required  | description
+----------- | -------- | -----------
+data-header-key |    Y      | You need to attach this data attribute to the **th** and give a unique value
+data-type-sort   | N   | You need to attach this data attribute to the **th** and give a value based on the value of the column. currently the only two data-type sort accepted are **date** and **number**
+data-sort-date    | Y  | You need to attach this data attribute to the **td** which contains a date and you want the table to order this columns. the value of this data attribute must be the date in the Y-m-d format
+
+
+Below a little sample of the thead 
+```html
+    <thead>
+        <tr>
+            <th class="filter" data-header-key="string">String</th>
+            <th class="filter" data-header-key="class">Class</th>
+            <th data-header-key="noun">Collective Noun</th>
+            <th class="filter" data-header-key="number" data-type-sort="number">A Number (integer or float)</th>
+            <th class="filter" data-header-key="date" data-type-sort="date">Date (the displayed date can be any format) </th>
+        </tr>
+    </thead>
+```
+
+and here a row with a date to order 
+```html
+    <tr>
+        <td>Bear</td>
+        <td>Mammal</td>
+        <td>Sleuth</td>
+        <td>1,5656</td>
+        <td data-sort-date="2020-01-12">12/01/2020</td>
+    </tr>
+```
+
 ## Options
 
 Below a little table containing all the parameters that you can currently pass;
