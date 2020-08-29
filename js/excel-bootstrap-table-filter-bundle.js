@@ -278,21 +278,25 @@ var FilterCollection = function () {
 
         if(this.options.sortOnHeaderClick){
 
-            this.target.find('th[data-sort-on-click=true]').click(function(){
+            this.target.find('th[data-sort-on-click=true]').click(function(e){
 
-                var sortType = $(this).attr('data-sort-type');
-                var $sortElement = $(this).find('span[class='+sortType+']');
-            
-                var currentTh = this;
-                var column = $sortElement.data('column');
-                var order = $sortElement.attr('class');
-                sort(column, order, table, options,floatOptions);
-                updateRowVisibility(filterMenus, rows, ths).then(() => {
 
-                    let nextSort = sortType === 'a-to-z' ? 'z-to-a' : 'a-to-z';
+                if(e.target === this ){
+                
+                    var sortType = $(this).attr('data-sort-type');
+                    var $sortElement = $(this).find('span[class='+sortType+']');
+                
+                    var currentTh = this;
+                    var column = $sortElement.data('column');
+                    var order = $sortElement.attr('class');
+                    sort(column, order, table, options,floatOptions);
+                    updateRowVisibility(filterMenus, rows, ths).then(() => {
 
-                    $(currentTh).attr('data-sort-type',nextSort);
-                })
+                        let nextSort = sortType === 'a-to-z' ? 'z-to-a' : 'a-to-z';
+
+                        $(currentTh).attr('data-sort-type',nextSort);
+                    })
+                }
             })
 
 

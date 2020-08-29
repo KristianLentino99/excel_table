@@ -94,27 +94,6 @@
             <td>7</td>
             <td data-sort-date="2020-05-31">31/05/2020</td>
           </tr>
-          <tr>
-            <td>Crow</td>
-            <td>Bird</td>
-            <td>Murder</td>
-            <td>8</td>
-            <td data-sort-date="2020-05-20">20/05/2020</td>
-          </tr>
-          <tr>
-            <td>Elephant</td>
-            <td>Mammal</td>
-            <td>Herd</td>
-            <td>9</td>
-            <td data-sort-date="2020-04-12">12/04/2020</td>
-          </tr>
-          <tr>
-            <td>Barracude</td>
-            <td>Fish</td>
-            <td>Grist</td>
-            <td>10</td>
-            <td data-sort-date="2020-02-12">12/02/2020</td>
-          </tr>
         </tbody>
       </table>
     </div>
@@ -261,6 +240,10 @@
         },
         sortOnHeaderClick:true
       });
+
+      $('#table').on('updateTableCompleted',function(){
+        
+      })
       $('#table2').excelTableFilter();
       $('#table3').excelTableFilter();
     });
